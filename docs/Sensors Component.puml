@@ -1,0 +1,41 @@
+@startuml
+title Warmhouse Sensors microservice Component Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(SensorsSystem, "Sensors Service") {
+  Container(SensorsService, "Sensors Service", "Python", "Manages and controls sensors data")
+  Container(Database, "Database", "PostgreSQL", "Stores sensors data")
+  Container(Broker, "Sensors Queue", "Kafka", "Process sensors data")
+  Container(WebApplication, "Web application", "Java/Spring", "Handles users interaction")
+  Container(ExternalSensors, "External Sensors", "", "User sensors hubs")
+}
+
+Container(SensorsService, "Sensors Service", "Python") {
+  Component(SensorsController, "SensorsController", "Manages sensors")
+  Component(SensorsServiceLayer, "Sensors Service", "Business logic")
+  Component(ExternalSensorsService, "External Sensors Service", "Gateway to external sensors")
+  Component(SensorsRepository, "Sensors Repository", "Data access logic")
+  Component(TelemetryController, "TelemetryController", "Handles telemetry")
+  Component(TelemetryJob, "TelemetryUpdateJob", "Fetch telemetry from broker")
+  Component(TelemetryService, "Telemetry Service", "Business logic")
+  Component(TelemetryRepository, "Telemetry Repository", "Data access logic")
+
+}
+
+Rel(WebApplication, TelemetryController, "Calls telemetry data")
+Rel(WebApplication, SensorsController, "Calls sensors data")
+Rel(TelemetryController, TelemetryService, "Calls business logic")
+Rel(TelemetryJob, TelemetryService, "Calls business logic")
+Rel(TelemetryJob, Broker, "Fetch data")
+Rel(TelemetryService, TelemetryRepository,"Reads/Writes data")
+Rel(TelemetryRepository, Database, "Reads/Writes telemetry data")
+Rel(SensorsController, SensorsServiceLayer, "Calls business logic")
+Rel(SensorsServiceLayer, SensorsRepository,"Reads/Writes data")
+Rel_R(SensorsServiceLayer, TelemetryService, "Manages sensors data")
+Rel(SensorsServiceLayer, ExternalSensorsService, "Manages sensors data")
+Rel(SensorsRepository, Database, "Reads/Writes sensors data")
+Rel(ExternalSensorsService, ExternalSensors, "Manages sensors data")
+@enduml

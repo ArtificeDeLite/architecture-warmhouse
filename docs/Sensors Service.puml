@@ -1,0 +1,54 @@
+@startuml
+
+title Sensors Service
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+interface SensorsService {
+    +createSensor(dto: SensorDto): Sensor
+    +updateSensor(dto: SensorDto): Sensor
+    +sensor(id: UUID): Sensor
+    +sensors(houseId: UUID)
+    +status(id: UUID): SensorStatus
+    +deleteSensor(id: UUID): void
+}
+
+class SensorsServiceImpl implements SensorsService {
+    -sensorRepo: SensorsRepository
+    -externalSensorService: ExternalSensorService
+    -publisher: EventPublisher
+    +createSensor(dto: SensorDto): Sensor
+    +updateSensor(dto: SensorDto): Sensor
+    +sensor(id: UUID): Sensor
+    +sensors(houseId: UUID)
+    +status(id: UUID): SensorStatus
+    +deleteSensor(id: UUID): void
+}
+
+interface SensorsRepository {
+    +save(sensor: Sensor): Sensor
+    +findById(id: UUID): Sensor
+    +findByHouseId(houseId: UUID): List<Sensor>
+    +delete(id: UUID): bool
+}
+
+class SensorsRepositoryImpl implements SensorsRepository {
+    -entityManager: EntityManager
+    +save(sensor: Sensor): Sensor
+    +findById(id: UUID): Sensor
+    +findByHouseId(houseId: UUID): List<Sensor>
+    +delete(id: UUID): bool
+}
+
+interface ExternalSensorService {
+    +status(serialNumber: string, hubId: UUID): SensorStatus
+}
+
+class ExternalSensorServiceImpl implements ExternalSensorService {
+    +status(serialNumber: string, hubId: UUID): SensorStatus
+}
+
+SensorsServiceImpl --> SensorsRepository
+SensorsServiceImpl --> ExternalSensorService
+
+@enduml

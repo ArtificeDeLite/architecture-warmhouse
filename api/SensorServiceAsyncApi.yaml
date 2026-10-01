@@ -1,0 +1,205 @@
+asyncapi: 3.0.0
+info:
+  title: Sensors service AsyncApi
+  description: |
+    AsyncAPI for interaction with Apache Kafka.
+    
+    ## Channels
+    - **sensor.data** — sensors telemetry (temperature, humidity, pressure)
+    - **sensor.status** — sensor status change events (active/unavailable/error)
+  version: 1.0.0
+
+servers:
+  production:
+    host: kafka.sensors:9092
+    protocol: kafka
+    protocolVersion: 3.5.0
+    description: Kafka cluster
+
+channels:
+  sensor.data:
+    address: 'sensor.data'
+    description: |
+      Sensors telemetry flow
+      Partitions: 12, partition key — sensor_id.
+      Retention: 7 days.
+    messages:
+      telemetry:
+        $ref: '#/components/messages/SensorTelemetry'
+  sensor.status:
+    address: 'sensor.status'
+    description: |
+      Sensor status change events.
+      Partitions: 6, key — sensor_id.
+      Retention: 30 days.
+    messages:
+      status:
+        $ref: '#/components/messages/SensorStatus'
+
+operations:
+  receiveTelemetry:
+    action: receive
+    channel:
+      $ref: '#/channels/sensor.data'
+    summary: Receive telemetry from sensors
+    description: |
+      Consumer group: telemetry-processor.
+    messages:
+      - $ref: '#/channels/sensor.data/messages/telemetry'
+  produceTelemetry:
+    action: send
+    channel:
+      $ref: '#/channels/sensor.data'
+    summary: Sending telemetry from sensor
+    description: |
+      Producer: house hub.
+    messages:
+      - $ref: '#/channels/sensor.data/messages/telemetry'
+  receiveStatus:
+    action: receive
+    channel:
+      $ref: '#/channels/sensor.status'
+    summary: Receive sensor status change events
+    description: |
+      Consumer group: sensor-monitor.
+    messages:
+      - $ref: '#/channels/sensor.status/messages/status'
+  produceStatus:
+    action: send
+    channel:
+      $ref: '#/channels/sensor.status'
+    summary: Sending events of sensor status change
+    description: |
+      Producer: health check service on house hub.
+    messages:
+      - $ref: '#/channels/sensor.status/messages/status'
+
+components:
+  messages:
+    SensorTelemetry:
+      name: sensorTelemetry
+      title: Sensor Telemetry
+      summary: Sensor telemetry
+      contentType: application/avro
+      headers:
+        type: object
+        properties:
+          kafka_topic:
+            type: string
+            const: sensor.data
+          kafka_partition:
+            type: integer
+            minimum: 0
+            maximum: 11
+          kafka_key:
+            type: string
+            description: sensor_id
+          kafka_timestamp:
+            type: integer
+            format: int64
+            description: Unix timestamp
+          schema_version:
+            type: string
+            const: '1.0.0'
+            description: Avro-schema version
+          message_id:
+            type: string
+            format: uuid
+            description: Unique message id
+        required:
+          - kafka_topic
+          - kafka_partition
+          - kafka_key
+          - kafka_timestamp
+          - schema_version
+          - message_id
+      payload:
+        $ref: '#/components/schemas/TelemetryData'
+
+    SensorStatus:
+      name: sensorStatus
+      title: Sensor Status
+      summary: Sensor status change event
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          kafka_topic:
+            type: string
+            const: sensor.status
+          kafka_partition:
+            type: integer
+            minimum: 0
+            maximum: 5
+          kafka_key:
+            type: string
+            description: sensor_id
+          kafka_timestamp:
+            type: integer
+            format: int64
+          message_id:
+            type: string
+            format: uuid
+        required:
+          - kafka_topic
+          - kafka_partition
+          - kafka_key
+          - kafka_timestamp
+      payload:
+        $ref: '#/components/schemas/StatusEvent'
+
+  schemas:
+    TelemetryData:
+      type: object
+      description: Sensor telemetry
+      properties:
+        sensorId:
+          type: string
+          format: uuid
+          description: Sensor identification
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        data:
+          type: string
+          description: sensor data
+          example: 23.50
+        date:
+          type: string
+          format: date-time
+          description: Date and time (ISO 8601, UTC)
+          example: '2026-01-01T12:00:00Z'
+      required:
+        - sensorId
+        - data
+        - date
+
+    StatusEvent:
+      type: object
+      description: Sensor status change event
+      properties:
+        sensorId:
+          type: string
+          format: uuid
+          description: Sensor identification
+        status:
+          type: string
+          enum:
+            - active
+            - unavailable
+            - error
+          description: Sensor status
+        previous_status:
+          type: string
+          enum:
+            - active
+            - unavailable
+            - error
+            - unknown
+          description: Previous status
+        date:
+          type: string
+          format: date-time
+          description: event time  (ISO 8601, UTC)
+      required:
+        - sensorId
+        - status
+        - date

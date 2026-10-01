@@ -1,0 +1,47 @@
+@startuml
+title Warmhouse microservices Container Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "A user of the warmhouse system")
+System(WarmhouseSystem, "Warmhouse System", "System managing sensors, devices, and video surveillance")
+
+Container_Boundary(WarmhouseSystem, "Warmhouse System") {
+  Container(WebApp, "Web Application", "Java, Spring", "Handles user interactions")
+  Container(SensorService, "Sensors Service", "Python", "Managing sensors data")
+  Container(SensorsQueue, "Sensors broker", "Kafka", "Process sensors data")
+  Container(DeviceService, "Devices Service", "Python", "Control devices")
+  Container(DevicesQueue, "Devices broker", "Kafka", "Process devices data")
+  Container(VideoService, "Video Surveillance Service", "Python", "Managing video surveillance data")
+  Container(Database, "Database", "PostgreSQL", "Stores user data, sensors data and device data")
+}
+
+System_Ext(devices, "Devices System", "External API for control devices")
+System_Ext(sensors, "Sensor Hubs System", "External sensor hubs for interacting with sensors")
+System_Ext(cameras, "Video Cameras System", "External video cameras system")
+
+Rel(user, WebApp, "Uses the system")
+
+Rel(WebApp, SensorService, "Managing sensors data")
+Rel(WebApp, DeviceService, "Managing devices")
+Rel(WebApp, VideoService, "Managing video cameras")
+Rel(WebApp, Database ,"Reads/Writes user data")
+
+Rel_D(DeviceService, DevicesQueue, "Fetches devices data")
+
+Rel_D(DeviceService, Database, "Reads/Writes devices data")
+Rel_D(SensorService, Database, "Reads/Writes sensors data")
+Rel_D(VideoService, Database, "Reads/Writes cameras data")
+
+Rel_D(SensorService, SensorsQueue, "Fetches sensors data")
+
+Rel_R(DeviceService, devices, "Managing devices")
+Rel_U(devices, DevicesQueue, "Sends devices data")
+
+Rel_L(SensorService, sensors, "Manages sensors")
+Rel_R(sensors, SensorsQueue, "Sends sensors data")
+
+Rel_U(VideoService, cameras, "Manages cameras")
+@enduml

@@ -1,0 +1,112 @@
+@startuml ER Diagram
+
+title Warmhouse ER diagram
+
+!define PK <b><color:#B8860B>PK</color></b>
+!define FK <b><color:#4682B4>FK</color></b>
+
+entity "User" as user {
+  * user_id         : INTEGER <<PK>>
+  --
+    name            : VARCHAR(100)
+    email           : VARCHAR(150)
+    phone           : VARCHAR(20)
+    created_at      : DATE
+}
+
+entity "House" as house {
+  * house_id        : INTEGER <<PK>>
+  --
+    user_id         : INTEGER<<FK>>
+    description     : VARCHAR(100)
+    address         : VARCHAR(250)
+    phone           : VARCHAR(20)
+    hub_serial      : VARCHAR(100)
+    created_at      : DATE
+}
+
+entity "Sensor" as sensor {
+    * id            : INTEGER<<PK>>
+  --
+    house_id        : INTEGER<<FK>>
+    sensor_type     : INTEGER<<FK>>
+    description     : VARCHAR(100)
+    status          : INTEGER<<FK>>
+    serial_number   : VARCHAR(100)
+    unit            : VARCHAR(20)
+    created_at      : DATE
+}
+
+entity "SensorType" as sensor_type {
+    * id            : INTEGER<<PK>>
+  --
+    description     : VARCHAR(20)
+}
+
+entity "Telemetry" as telemetry {
+    * id            : INTEGER<<PK>>
+  --
+    sensor_id       : INTEGER<<FK>>
+    data            : DECIMAL(10,3)
+    date            : DATE
+}
+
+entity "Device" as device {
+    * id            : INTEGER<<PK>>
+  --
+    house_id        : INTEGER<<FK>>
+    device_type     : INTEGER<<FK>>
+    status          : INTEGER<<FK>>
+    description     : VARCHAR(100)
+    serial_number   : VARCHAR(100)
+    created_at      : DATE
+}
+
+entity "DeviceType" as device_type {
+    * id            : INTEGER<<PK>>
+  --
+    description     : VARCHAR(20)
+}
+
+entity "DeviceStatus" as device_status {
+    * id            : INTEGER<<PK>>
+  --
+    description     : VARCHAR(20)
+}
+
+entity "SensorStatus" as sensor_status {
+    * id            : INTEGER<<PK>>
+  --
+    description     : VARCHAR(20)
+}
+
+entity "Camera" as camera {
+    * id            : INTEGER<<PK>>
+  --
+    house_id        : INTEGER<<FK>>
+    status          : INTEGER<<FK>>
+    description     : VARCHAR(100)
+    stream_link     : VARCHAR(100)
+    serial_number   : VARCHAR(100)
+    created_at      : DATE
+}
+
+entity "CameraStatus" as camera_status {
+    * id            : INTEGER<<PK>>
+  --
+    description     : VARCHAR(20)
+}
+
+' Relationships (Crow's Foot notation)
+user            ||--o{ house    : "belongs to"
+house           ||--o{ sensor   : "belongs to"
+sensor_status   ||--|{ sensor   : "contains"
+sensor_type     ||--|{ sensor   : "type of"
+sensor          ||--o{ telemetry: "belongs to"
+house           ||--o{ device   : "belongs to"
+device_type     ||--|{ device   : "contains"
+device_status   ||--|{ device   : "contains"
+house           ||--o{ camera   : "belongs to"
+camera_status   ||--|{ camera   : "contains"
+
+@enduml

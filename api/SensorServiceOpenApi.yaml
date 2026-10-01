@@ -1,0 +1,376 @@
+openapi: 3.1.0
+info:
+  title: Sensor Service
+  description: Sensor Service provides sensors data and manages sensors
+  version: 1.0.0
+
+servers:
+  - url: 'https://sensors.warmhouse.ru'
+
+tags:
+  - name: Sensors
+    description: Manage sensors
+  - name: Telemetry
+    description: Manage telemetry
+
+paths:
+  /{houseId}/sensors:
+    get:
+      tags:
+        - Sensors
+      summary: Get sensors
+      description: Returns sensors by house
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Sensors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sensor'
+                examples: [[
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "type": "TEMPERATURE",
+                    "description": "Temperature in living room",
+                    "status": "ACTIVE",
+                    "serialNumber": "sn-123-456",
+                    "unit": "kPa",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }]]
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Sensors
+      summary: Add a new sensor
+      description: Add a new sensor
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          description: House identifier
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddSensorRequest'
+      responses:
+        '201':
+          description: Sensor added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /{houseId}/sensors/{id}:
+    get:
+      tags:
+        - Sensors
+      summary: Get sensor by id
+      description: Returns sensor by id
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Sensor identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Sensor
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Sensor'
+                examples:
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "type": "TEMPERATURE",
+                    "description": "Temperature in living room",
+                    "status": "ACTIVE",
+                    "serialNumber": "sn-123-456",
+                    "unit": "kPa",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Sensors
+      summary: Update sensor description
+      description: Update sensor
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Sensor identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSensorRequest'
+      responses:
+        '200':
+          description: Sensor
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Sensor'
+                examples:
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "type": "TEMPERATURE",
+                    "description": "Temperature in living room",
+                    "status": "ACTIVE",
+                    "serialNumber": "sn-123-456",
+                    "unit": "kPa",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Sensors
+      summary: Delete sensor
+      description: Delete sensor
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Sensor identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '204':
+          description: Sensor deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /{houseId}/sensors/{id}/telemetry:
+    get:
+      tags:
+        - Sensors
+        - Telemetry
+      summary: Get sensor telemetry
+      description: Returns telemetry
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Sensor identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: 2026-01-01T12:00:00Z
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: 2026-01-01T12:00:00Z
+      responses:
+        '200':
+          description: Telemetry
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Telemetry'
+                examples: [[
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "sensorId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "data": "10.24",
+                    "date": "2026-01-01 12:34:56"
+                  }]]
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+components:
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Conflict (e.g., sensor already exist)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required: [ code, message ]
+      properties:
+        code:
+          type: string
+          example: NOT_FOUND
+        message:
+          type: string
+          example: Sensor not found
+
+    Sensor:
+      type: object
+      required: [ id, houseId, type, status, serialNumber, createdAt ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        houseId:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        type:
+          type: string
+          enum: [ TEMPERATURE, HUMIDITY, PRESSURE ]
+        description:
+          type: string
+          example: "Temperature in living room"
+        status:
+          type: string
+          enum: [ ACTIVE, ERROR, UNAVAILABLE ]
+        serialNumber:
+          type: string
+          example: sn-123-456
+        unit:
+          type: string
+          example: kPa
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-01-01T12:34:56Z
+
+    AddSensorRequest:
+      type: object
+      required: [ type, serialNumber ]
+      properties:
+        type:
+          type: string
+          enum: [ TEMPERATURE, HUMIDITY, PRESSURE ]
+        description:
+          type: string
+          example: Temperature in living room
+        serialNumber:
+          type: string
+          example: sn-123-456
+        unit:
+          type: string
+          example: kPa
+
+    UpdateSensorRequest:
+      type: object
+      required: [ description ]
+      properties:
+        description:
+          type: string
+          example: "Temperature in living room"
+
+    Telemetry:
+      type: object
+      required: [ id, sensorId, data, date ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        sensorId:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        data:
+          type: string
+          example: 24.50
+        date:
+          type: string
+          format: date-time
+          example: 2026-01-01T12:34:56Z
+
