@@ -1,0 +1,349 @@
+openapi: 3.1.0
+info:
+  title: Video Surveillance Service
+  description: Video Surveillance Service provides cameras status and manages camera streams
+  version: 1.0.0
+
+servers:
+  - url: 'https://cameras.warmhouse.ru'
+
+tags:
+  - name: Cameras
+    description: Manage cameras
+  - name: Streams
+    description: Manage video streams
+
+paths:
+  /{houseId}/cameras:
+    get:
+      tags:
+        - Cameras
+      summary: Get cameras
+      description: Returns video cameras by house
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Cameras
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Camera'
+                examples: [[
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "description": "Camera in living room",
+                    "status": "OFF",
+                    "serialNumber": "sn-123-456",
+                    "streamLink": "rtsp://stream-link",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }]]
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Cameras
+      summary: Add a new camera
+      description: Add a new camera
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          description: House identifier
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCameraRequest'
+      responses:
+        '201':
+          description: Camera added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Camera'
+                examples: [
+                {
+                  "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                  "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                  "description": "Camera in living room",
+                  "status": "OFF",
+                  "serialNumber": "sn-123-456",
+                  "streamLink": "rtsp://stream-link",
+                  "createdAt": "2026-01-01 12:34:56"
+                }]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /{houseId}/cameras/{id}:
+    get:
+      tags:
+        - Cameras
+      summary: Get camera by id
+      description: Returns camera by id
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Camera identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Camera
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Camera'
+                examples:
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "description": "Camera in living room",
+                    "status": "OFF",
+                    "serialNumber": "sn-123-456",
+                    "streamLink": "rtsp://stream-link",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Cameras
+      summary: Update camera
+      description: Update camera description and stream link
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Camera identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCameraRequest'
+      responses:
+        '200':
+          description: Camera
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Camera'
+                examples:
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "description": "Camera in living room",
+                    "status": "OFF",
+                    "serialNumber": "sn-123-456",
+                    "streamLink": "rtsp://stream-link",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Cameras
+      summary: Delete camera
+      description: Delete camera
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Camera identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '204':
+          description: Camera deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /{houseId}/cameras/{id}/stream:
+    get:
+      tags:
+        - Cameras
+        - Streams
+      summary: Get camera stream link
+      description: Get camera stream link
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          description: House identifier
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Camera identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Video stream link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreamLink'
+                examples: [
+                  {
+                    "streamLink": "rtsp://stream-link"
+                  } ]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Conflict (e.g., camera already exist)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required: [ code, message ]
+      properties:
+        code:
+          type: string
+          example: NOT_FOUND
+        message:
+          type: string
+          example: Camera not found
+
+    Camera:
+      type: object
+      required: [ id, houseId, status, serialNumber, streamLink, createdAt ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        houseId:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        description:
+          type: string
+          example: "Camera in living room"
+        status:
+          type: string
+          enum: [ ON, OFF, ERROR, UNAVAILABLE ]
+        serialNumber:
+          type: string
+          example: sn-123-456
+        streamLink:
+          type: string
+          example: rtsp://stream-link
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-01-01T12:34:56Z
+
+    AddCameraRequest:
+      type: object
+      required: [ serialNumber, streamLink ]
+      properties:
+        description:
+          type: string
+          example: "Lights in living room"
+        serialNumber:
+          type: string
+          example: sn-123-456
+        streamLink:
+          type: string
+          example: rtsp://stream-link
+
+    UpdateCameraRequest:
+      type: object
+      required: [ description, streamLink ]
+      properties:
+        description:
+          type: string
+          example: "Camera in living room"
+        streamLink:
+          type: string
+          example: rtsp://stream-link
+
+    StreamLink:
+      type: object
+      required: [ streamLink ]
+      properties:
+        streamLink:
+          type: string
+          example: rtsp://stream-link
+

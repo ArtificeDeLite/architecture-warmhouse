@@ -1,0 +1,34 @@
+@startuml
+title Warmhouse Video Surveillance microservice Component Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(VideoSurveillance, "Video Surveillance Service") {
+  Container(VideoSurveillanceService, "Video Surveillance Service", "Python", "Manages video cameras data")
+  Container(Database, "Database", "PostgreSQL", "Stores cameras data")
+  Container(WebApplication, "Web application", "Java/Spring", "Handles users interaction")
+  Container(ExternalCameras, "External Camera service", "", "User cameras hub")
+}
+
+Container(VideoSurveillanceService, "Video Surveillance Service", "Python") {
+  Component(CameraController, "CameraController", "Manages cameras")
+  Component(VideoStreamController, "VideoStreamController", "Manages video streams")
+  Component(CameraService, "Camera Service", "Business logic")
+  Component(StreamService, "Stream Service", "Business logic")
+  Component(ExternalCameraService, "External Camera service", "Gateway to Cameras")
+  Component(CameraRepository, "Camera Repository", "Data access logic")
+}
+
+Rel(WebApplication, CameraController, "Calls cameras data")
+Rel(WebApplication, VideoStreamController, "Calls cameras data")
+Rel(VideoStreamController, StreamService, "Calls business logic")
+Rel(CameraController, CameraService, "Calls business logic")
+Rel(CameraService, CameraRepository,"Reads/Writes data")
+Rel(CameraService, ExternalCameraService, "Manages cameras data")
+Rel(StreamService, ExternalCameraService, "Manages streams")
+Rel(StreamService, CameraRepository, "Reads/Writes cameras data")
+Rel(CameraRepository, Database, "Reads/Writes cameras data")
+Rel(ExternalCameraService, ExternalCameras, "Manages cameras and streams")
+@enduml

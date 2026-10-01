@@ -1,0 +1,33 @@
+@startuml
+title Warmhouse Device microservice Component Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(DeviceSystem, "Device Service") {
+  Container(DeviceService, "Devices Service", "Python", "Manages devices")
+  Container(Database, "Database", "PostgreSQL", "Stores devices data")
+  Container(Broker, "Devices Queue", "Kafka", "Process devices data")
+  Container(WebApplication, "Web application", "Java/Spring", "Handles users interaction")
+  Container(ExternalDevices, "External Device service", "", "User devices hub")
+}
+
+Container(DeviceService, "Device Service", "Python") {
+  Component(DeviceController, "DeviceController", "Manages devices")
+  Component(DeviceServiceLayer, "Device Service", "Business logic")
+  Component(ExternalDeviceService, "External Device service", "Gateway to Devices")
+  Component(DeviceRepository, "Device Repository", "Data access logic")
+  Component(DeviceStatusJob, "DeviceStatusUpdateJob", "Fetch device data from broker")
+
+}
+
+Rel(WebApplication, DeviceController, "Calls devices data")
+Rel(DeviceStatusJob, Broker, "Fetch data")
+Rel(DeviceStatusJob, DeviceServiceLayer, "Calls business logic")
+Rel(DeviceController, DeviceServiceLayer, "Calls business logic")
+Rel(DeviceServiceLayer, DeviceRepository,"Reads/Writes data")
+Rel(DeviceServiceLayer, ExternalDeviceService, "Manages device data")
+Rel(DeviceRepository, Database, "Reads/Writes device data")
+Rel(ExternalDeviceService, ExternalDevices, "Manages devices")
+@enduml

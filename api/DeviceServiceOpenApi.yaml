@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: Device Service
+  description: Device Service provides device status and manages devices
+  version: 1.0.0
+
+servers:
+  - url: 'https://devices.warmhouse.ru'
+
+tags:
+  - name: Devices
+    description: Manage devices
+
+paths:
+  /{houseId}/devices:
+    get:
+      tags:
+        - Devices
+      summary: Get devices
+      description: Returns devices by house
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+                examples: [[
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "type": "LIGHTS",
+                    "description": "Lights in living room",
+                    "status": "OFF",
+                    "serialNumber": "sn-123-456",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }]]
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Devices
+      summary: Add a new device
+      description: Add a new device
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          description: House identifier
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDeviceRequest'
+      responses:
+        '201':
+          description: Device added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /{houseId}/devices/{id}:
+    get:
+      tags:
+        - Devices
+      summary: Get device by id
+      description: Returns device by id
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Device identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '200':
+          description: Device
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Device'
+                examples:
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "type": "LIGHTS",
+                    "description": "Lights in living room",
+                    "status": "OFF",
+                    "serialNumber": "sn-123-456",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Devices
+      summary: Update device description
+      description: Update device
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Device identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceRequest'
+      responses:
+        '200':
+          description: Device
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Device'
+                examples:
+                  {
+                    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "houseId": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                    "type": "LIGHTS",
+                    "description": "Lights in living room",
+                    "status": "OFF",
+                    "serialNumber": "sn-123-456",
+                    "createdAt": "2026-01-01 12:34:56"
+                  }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Devices
+      summary: Delete device
+      description: Delete device
+      parameters:
+        - in: path
+          name: houseId
+          description: House identification
+          required: true
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Device identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      responses:
+        '204':
+          description: Device deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /{houseId}/devices/{id}/control:
+    post:
+      tags:
+        - Devices
+      summary: Send command to device
+      description: Send command to device
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          description: House identifier
+          schema:
+            type: string
+            format: UUID
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: UUID
+            description: Device identification
+            example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandRequest'
+      responses:
+        '201':
+          description: Command applied
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+
+
+components:
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Conflict (e.g., deivce already exist)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required: [ code, message ]
+      properties:
+        code:
+          type: string
+          example: NOT_FOUND
+        message:
+          type: string
+          example: Device not found
+
+    Device:
+      type: object
+      required: [ id, houseId, type, status, serialNumber, createdAt ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        houseId:
+          type: string
+          format: uuid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        type:
+          type: string
+          enum: [ HEATER, GATES, LIGHTS ]
+        description:
+          type: string
+          example: "Lights in living room"
+        status:
+          type: string
+          enum: [ ON, OFF, ERROR, UNAVAILABLE ]
+        serialNumber:
+          type: string
+          example: sn-123-456
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-01-01T12:34:56Z
+
+    AddDeviceRequest:
+      type: object
+      required: [ type, serialNumber ]
+      properties:
+        type:
+          type: string
+          enum: [ HEATER, GATES, LIGHTS ]
+        description:
+          type: string
+          example: "Lights in living room"
+        serialNumber:
+          type: string
+          example: sn-123-456
+
+    UpdateDeviceRequest:
+      type: object
+      required: [ description ]
+      properties:
+        description:
+          type: string
+          example: "Lights in living room"
+
+    CommandRequest:
+      type: object
+      required: [ command ]
+      properties:
+        command:
+          type: string
+          enum: [ SWITCH_ON, SWITCH_OFF ]
+          example: SWITCH_ON

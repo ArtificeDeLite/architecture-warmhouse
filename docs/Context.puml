@@ -1,0 +1,18 @@
+@startuml
+title Warmhouse monolith application Context Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "A user of the warmhouse application")
+System(WarmhouseSystem, "Warmhouse System", "System managing temperature sensors and heaters")
+
+System_Ext(sensors, "Temperature sensors", "Customer's house temperature sensors")
+System_Ext(heaters, "Heaters", "Customer's house heating system")
+
+Rel(user, WarmhouseSystem, "Uses the system")
+Rel(WarmhouseSystem,sensors,"Fetches sensors data")
+Rel(WarmhouseSystem,heaters,"Controls the heating system")
+
+@enduml

@@ -1,0 +1,116 @@
+asyncapi: 3.0.0
+info:
+  title: Device service AsyncApi
+  description: |
+    AsyncAPI for interaction with Apache Kafka.
+    
+    ## Channels
+    - **device.status** — device status change events (on/off/unavailable/error)
+  version: 1.0.0
+
+servers:
+  production:
+    host: kafka.devices:9092
+    protocol: kafka
+    protocolVersion: 3.5.0
+    description: Kafka cluster
+
+channels:
+  device.status:
+    address: 'device.status'
+    description: |
+      Device status change events.
+      Partitions: 6, key — device_id.
+      Retention: 30 days.
+    messages:
+      status:
+        $ref: '#/components/messages/DeviceStatus'
+
+operations:
+  receiveStatus:
+    action: receive
+    channel:
+      $ref: '#/channels/device.status'
+    summary: Receive device status change events
+    description: |
+      Consumer group: device-monitor.
+    messages:
+      - $ref: '#/channels/device.status/messages/status'
+  produceStatus:
+    action: send
+    channel:
+      $ref: '#/channels/device.status'
+    summary: Sending events of device status change
+    description: |
+      Producer: health check service on house hub.
+    messages:
+      - $ref: '#/channels/device.status/messages/status'
+
+components:
+  messages:
+    DeviceStatus:
+      name: deviceStatus
+      title: Device Status
+      summary: Device status change event
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          kafka_topic:
+            type: string
+            const: device.status
+          kafka_partition:
+            type: integer
+            minimum: 0
+            maximum: 5
+          kafka_key:
+            type: string
+            description: device_id
+          kafka_timestamp:
+            type: integer
+            format: int64
+          message_id:
+            type: string
+            format: uuid
+        required:
+          - kafka_topic
+          - kafka_partition
+          - kafka_key
+          - kafka_timestamp
+      payload:
+        $ref: '#/components/schemas/StatusEvent'
+
+  schemas:
+    StatusEvent:
+      type: object
+      description: Device status change event
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+          description: Device identification
+        status:
+          type: string
+          enum:
+            - on
+            - off
+            - unavailable
+            - error
+          description: Device status
+        previous_status:
+          type: string
+          enum:
+            - on
+            - off
+            - unavailable
+            - error
+            - unknown
+          description: Previous status
+        date:
+          type: string
+          format: date-time
+          description: event time  (ISO 8601, UTC)
+      required:
+        - deviceId
+        - status
+        - date
